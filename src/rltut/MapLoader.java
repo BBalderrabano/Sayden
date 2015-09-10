@@ -212,6 +212,7 @@ public class MapLoader {
 		
 		if(cloneOf != null && !cloneOf.isEmpty()){
 			Tile patient_zero = Tile.VALUES_BY_NAME.get(cloneOf);
+			tile = new Tile();
 			
 			tile.setGlyph(patient_zero.glyph());
 			tile.setColor(patient_zero.color());

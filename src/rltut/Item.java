@@ -30,6 +30,7 @@ public class Item extends DataStructure{
 	private String name;
 	public String name() { return getBooleanData("IsBroken") ? name+ " " + (gender == 'M' ? "roto" : "rota") : name; }
 	
+	public String nameAElALa() { return (gender == 'M' ? "al " : "a la ") + name(); }
 	public String nameElLa() { return (gender == 'M' ? (name().endsWith("s") ? "los " :"el ") : (name().endsWith("s") ? "las " : "la ")) + name(); }
 	public String nameElLaTu(Creature reference) { return reference.isPlayer() ? (name().endsWith("s") ? "tus " : "tu ") + name() :	nameElLa(); } 
 	public String nameTuSu(Creature reference) { return (reference.isPlayer() ? (name().endsWith("s") ? "tus " : "tu ") : (name().endsWith("s") ? "sus " : "su ")) + name(); }

@@ -72,6 +72,7 @@ public class Creature extends DataStructure{
 	public String name() { return name; }
 	public void setName(String newName) { this.name = newName; }
 	
+	public String nameAElALa() { return (gender == 'M' ? "al " : "a la ") + name(); }
 	public String nameElLa() { return (gender == 'M' ? "el " : "la ") + name(); }
 	public String nameElLaTu() { return isPlayer() ? "tu " + name() : (gender == 'M' ? "el " : "la ") + name(); } 
 	public String nameDelDeLa() { return (gender == 'M' ? "del " : "de la ") + name(); }
@@ -182,6 +183,47 @@ public class Creature extends DataStructure{
 	public void addOptions(ArrayList<Option> newOptions) { options.clear(); options.addAll(newOptions); }
 	public void addOption(Option newOption){ options.add(newOption); }
 	public void clearOptions() { options.clear(); }
+	public void getOptions(){
+		List<Point> adjacent = new Point(x,y,z).neighbors8();
+		
+		for(int n = 0; n < adjacent.size(); n++){
+			final Point p = adjacent.get(n);
+			final Creature c = world.creature(p.x, p.y, p.z);
+			final Item i = world.item(p.x, p.y, p.z);
+			final Tile t = world.tile(p.x, p.y, p.z);
+			
+			if(t.interaction() != null){
+				addOption(new Option("interactuar con " + t.glyph(), this){
+					public void onSelect(Creature creature){
+						if(t.interaction() == Tile.Interaction.CHANGES && !t.isGround()){
+							if(t.change_to() != null){
+								world.changeTile(p.x, p.y, p.z, t.change_to());
+							}
+							doAction(t.action());
+						}
+						creature.clearOptions();
+					}
+				});
+			}
+			if(c != null){
+				addOption(new Option("atacar "+ c.nameAElALa(), this){
+					public void onSelect(Creature creature){
+						creature.moveBy(p.x - x,p.y - y, z);
+						creature.clearOptions();
+					}
+				});
+			}
+			if(i != null){
+				addOption(new Option("recoger "+ i.nameAElALa(), this){
+					public void onSelect(Creature creature){
+						creature.inventory().add(i);
+						creature.getWorld().remove(i);
+						creature.clearOptions();
+					}
+				});
+			}
+		}
+	}
 	
 	private List<BodyPart> limbs;
 	public List<BodyPart> limbs() { return limbs; }
@@ -381,7 +423,7 @@ public class Creature extends DataStructure{
 	private void commonAttack(Creature other, Item damagingObject) {
 		BodyPart position = null;						//Posicion del ataque
 		DamageType damageType = null;					//Tipo de daño inflinjido (BLUNT, SLICE, etc) Declarados en DamageType
-		int damagePower = -9999;							//Poder del daño inflinjido (si el arma tiene varios tipos de ataque tomaria el mayor
+		int damagePower = -9999;						//Poder del daño inflinjido (si el arma tiene varios tipos de ataque tomaria el mayor
 		int defendingPower = 0;							//Poder de defensa contra el mayor daño, usado para chequear bloqueos
 		Item defendingObject = null;					//Objeto con el que la criatura esta intentando defender el ataque
 		int chanceToHit = StringUtils.randInt(0, 100);	//Chances de fallar el golpe
@@ -453,7 +495,7 @@ public class Creature extends DataStructure{
 			if(damagingObject.getDamageType(type) == null)
 				continue;
 			
-			int power = damagingObject.getDamageType(type).power();		//Guardamos el poder
+			int power = damagingObject.getDamageType(type).power();				//Guardamos el poder
 			int defense_power = 0;
 			
 			if(damagingObject.getBooleanData("IsBroken"))
@@ -463,7 +505,7 @@ public class Creature extends DataStructure{
 			if(defendingObject.getDamageType(type) == null)
 				defense_power = 0;
 			else
-				defense_power = defendingObject.getDamageType(type).power();		//Guardamos el poder
+				defense_power = defendingObject.getDamageType(type).power();	//Guardamos el poder
 			
 			//Si esta defendiendo con "la piel" no lo hace desde la cabeza
 			if(defendingObject.itemType() == ItemType.INTRINSIC &&

@@ -104,7 +104,6 @@ public class Tile {
 	private Tile change_to;
 	public Tile change_to() { return change_to; }
 	public void setChangeTo(Tile tile) { this.change_to = tile; }
-	public Tile setChangeTo1(Tile tile) { this.change_to = tile; return this; }
 	
 	private Tile addInteraction(Interaction interaction) { this.interaction = interaction; return this; }
 	

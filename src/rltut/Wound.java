@@ -32,7 +32,7 @@ public class Wound extends DataStructure{
 	private double weight;
 	public double weight() { return weight; }
 	
-	public static Wound pickRandomWound(ArrayList<Wound> wounds){
+	public static Wound pickWeightedWound(ArrayList<Wound> wounds){
 		Collections.shuffle(wounds);
 		
 		double totalWeight = 0.0d;
@@ -56,10 +56,11 @@ public class Wound extends DataStructure{
 		
 		return wounds.get(randomIndex);
 	}
-	
+
 	public static Wound getDefaultWound(final DamageType type, BodyPart bodyPart, Creature target) {
 		ArrayList<Wound> possibleWounds = new ArrayList<Wound>();
 		
+		//********************************************************************************************************************
 		if(type.wondType() == DamageType.BLUNT.wondType()){
 			if(bodyPart.position() == BodyPart.HEAD.position()){
 				if(!target.hasWound("Mandibula rota"))
@@ -164,6 +165,7 @@ public class Wound extends DataStructure{
 			}
 		}
 		
+		//********************************************************************************************************************
 		if(type.wondType() == DamageType.SLICE.wondType()){
 			if(bodyPart.position() == BodyPart.HEAD.position()){
 				possibleWounds.add(new Wound("Corte a la cien", "desangra y enceguece", Constants.WOUND_DURATION_LOW, type, bodyPart, 1){
@@ -190,7 +192,9 @@ public class Wound extends DataStructure{
 					public void onApply(Creature creature, Creature applier){
 						//Sliiick!! Un horrendo corte se genera en tu brazo
 						//Sliiick!! Un horrendo corte se genera en el brazo del jefe ogro
-						creature.notifyArround(Constants.WOUND_COLOR, "Slliiick!! Un horrendo corte se genera en " + (creature.isPlayer() ? "tu brazo" : "el brazo " + creature.nameDelDeLa()));
+						creature.notifyArround(Constants.WOUND_COLOR, "Slliiick!! " + 
+								(creature.isPlayer() ? StringUtils.capitalize(applier.nameElLa()) + " genera un horrible corte en " : "Generas un horrible corte en ") + 
+								(creature.isPlayer() ? "tu brazo y cercenando tus tendones" : "el brazo " + creature.nameDelDeLa() + ", cercenando sus tendones"));
 						creature.notify(Constants.WOUND_COLOR, "[sangrado y reduce presicion]");
 						creature.modifyAccuracy(-20);
 					}
@@ -206,10 +210,11 @@ public class Wound extends DataStructure{
 			if(bodyPart.position() == BodyPart.LEGS.position()){
 				possibleWounds.add(new Wound("Corte en la pierna", "sangrado y reduce velocidad", Constants.WOUND_DURATION_LOW, type, bodyPart, 1){
 					public void onApply(Creature creature, Creature applier){
-						//Impactas en la pierna del jefe ogro generando un feo corte!
-						//El jefe ogro impacta en tu pierna generando un feo corte!
-						creature.notifyArround(Constants.WOUND_COLOR, creature.isPlayer() ? "Impactas en la pierna " + applier.nameDelDeLa() : StringUtils.capitalize(creature.nameElLa() + " impacta en tu pierna")+
-								" generando un feo corte!");
+						//Cortas la pierna del jefe ogro reventando su rodilla y cirniendolo sobre el piso
+				      	//El jefe ogro corta tu pierna, reventando tu rodilla y cirniendote sobre el piso
+						creature.notifyArround(Constants.WOUND_COLOR, (creature.isPlayer() ? 
+								StringUtils.capitalize(applier.nameElLa())+" corta tu pierna, reventando tu rodilla y cirniendote sobre el piso" : 
+									"Cortas la pierna "+ creature.nameDelDeLa() + " reventando su rodilla y cirniendolo sobre el piso"));
 						creature.notify(Constants.WOUND_COLOR, "[sangrado y reduce velocidad]");
 						creature.modifyMovementSpeed(50);
 					}
@@ -236,13 +241,16 @@ public class Wound extends DataStructure{
 			}
 		}
 		
+		//********************************************************************************************************************
 		if(type.wondType() == DamageType.PIERCING.wondType()){
 			if(bodyPart.position() == BodyPart.HEAD.position()){
 				possibleWounds.add(new Wound("Puñal al ojo", "reduccion vision", Constants.WOUND_DURATION_MID, type, bodyPart, 1){
 					public void onApply(Creature creature, Creature applier){
-						//Aaaargh! El filo de la daga penetra en tu ojo
-						//Aaaargh! El filo de la daga penetra en el ojo del jefe ogro
-						creature.notifyArround(Constants.WOUND_COLOR, "Aaaargh!! El filo de "+type.itemOrigin().nameElLaTu(applier)+ " penetra "+ (creature.isPlayer() ? "en tu ojo": "en el ojo " + creature.nameDelDeLa()));
+				      	//Aaaargh! La punta de la daga penetra en tu ojo, encegueciendote
+				      	//Aaaargh! La punta de la daga penetra en el ojo del jefe ogro, encegueciendolo
+						creature.notifyArround(Constants.WOUND_COLOR, "Aaaargh!! " 
+								+ StringUtils.capitalize(type.itemOrigin().nameElLa()) + " penetra " + 
+								(creature.isPlayer() ? "en tu ojo, encegueciendote" : " en el ojo " + creature.nameDelDeLa() + ", encegueciendolo"));
 						creature.notify("[reduccion vision]");
 						creature.modifyVisionRadius(-4);
 					}
@@ -266,7 +274,13 @@ public class Wound extends DataStructure{
 			if(bodyPart.position() == BodyPart.ARMS.position()){
 				possibleWounds.add(new Wound("Puñal al brazo", "reduce velocidad", Constants.WOUND_DURATION_MID, type, bodyPart, 1){
 					public void onApply(Creature creature, Creature applier){
-						creature.notifyArround(Constants.WOUND_COLOR, "");
+						creature.notifyArround(Constants.WOUND_COLOR, StringUtils.capitalize(type.itemOrigin().nameElLaTu(creature)) + " perfora con fuerza "
+								+ (creature.isPlayer() ? "tu brazo, cortandote un tendon!" : "el brazo "+ creature.nameDelDeLa() + " cortandole un tendon!"));
+						creature.notify("[reduccion velocidad]");
+						creature.modifyAttackSpeed(50);
+					}
+					public void onFinish(Creature creature){
+						creature.modifyAttackSpeed(-50);
 					}
 				});
 			}
@@ -512,7 +526,7 @@ public class Wound extends DataStructure{
 				});
 		}*/
 		if(!possibleWounds.isEmpty())
-			return pickRandomWound(possibleWounds);
+			return pickWeightedWound(possibleWounds);
 		else
 			return null;
 	}
