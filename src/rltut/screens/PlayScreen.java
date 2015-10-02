@@ -210,6 +210,8 @@ public class PlayScreen implements Screen {
 			case KeyEvent.VK_TAB: subscreen = new EquipScreen(player); break;
 			case KeyEvent.VK_I: subscreen = new EquipScreen(player); break;
 			case KeyEvent.VK_ENTER: player.getOptions(); break;
+			case KeyEvent.VK_C:
+			case KeyEvent.VK_R: subscreen = new ReadSpellScreen(player, player.x - getScrollX(), player.y - getScrollY());
 			}
 			/*case KeyEvent.VK_L: subscreen = new LookScreen(player, "Observando", 
 					player.x - getScrollX(), 

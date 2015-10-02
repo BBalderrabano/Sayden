@@ -9,6 +9,7 @@ import java.util.Map;
 
 import rltut.Item.ItemType;
 import rltut.ai.PlayerAi;
+import rltut.ai.SilvioAi;
 import rltut.ai.TomasAi;
 import rltut.ai.WolfAi;
 import rltut.ai.ZombieAi;
@@ -75,6 +76,14 @@ public class StuffFactory {
 			
 			return tomas;
 		}
+		if(name.indexOf("Silvio") != -1){
+			Creature silvio = new Creature(world, '@', 'M', color, "Silvio el que dialoga", 20, puños, piel);
+			new SilvioAi(silvio);
+			silvio.modifyWoundResistance(2);
+			silvio.ai().setNpc();
+			
+			return silvio;
+		}
 		
 		return null;
 	}
@@ -91,6 +100,9 @@ public class StuffFactory {
 		player.inventory().add(newDagger(-1));
 		player.inventory().add(newBread(-1));
 		player = makeBiped(player);
+		
+		player.inventory().add(newWhiteMagesSpellbook(-1));
+		player.learnSpell(new Spell("Test", null));
 		
 		return player;
 	}
@@ -132,69 +144,81 @@ public class StuffFactory {
 		return goblin;
 	}*/
 	
-	public Item getHealCorpse(){
+	public static Item getHealCorpse(){
 		List<Item> items = new ArrayList<Item>();
 		
 		items.add(newBonePowder(-1));
 		items.add(newBowlsJuice(-1));
-		items.add(newBonePowder(-1));
+		items.add(newBowlsPomada(-1));
 		
 		Collections.shuffle(items);
 		
 		return items.get(0);
 	}
 	
-	public Item newBonePowder(int depth){
-		Item bonePowder = new Item(ItemType.STATIC, '~', 'M', AsciiPanel.brightWhite, "polvo de hueso", null);
+	public static Item newBonePowder(int depth){
+		Item bonePowder = new Item(ItemType.WOUND_HEAL, '~', 'M', AsciiPanel.brightWhite, "polvo de hueso", null);
 		bonePowder.setData("IsEdible", true);
 		bonePowder.setQuaffEffect(new Effect(1){
 			public void start(Creature creature){
+				boolean healsWound = false;
 				for(Wound w : creature.wounds()){
 					if(w.type() == DamageType.SLICE){
 						w.onFinish(creature);
 						w.endDuration();
+						healsWound = true;
 						return;
 					}
 				}
+				if(healsWound)
+					creature.doAction("siente mas sano");
 			}
 		});
-		world.addAtEmptyLocation(bonePowder, depth);
+		//world.addAtEmptyLocation(bonePowder, depth);
 		return bonePowder;
 	}
 	
-	public Item newBowlsJuice(int depth){
-		Item bonePowder = new Item(ItemType.STATIC, '~', 'M', Color.ORANGE, "jugo de viceras", null);
+	public static Item newBowlsJuice(int depth){
+		Item bonePowder = new Item(ItemType.WOUND_HEAL, '~', 'M', Color.ORANGE, "jugo de viceras", null);
 		bonePowder.setData("IsEdible", true);
 		bonePowder.setQuaffEffect(new Effect(1){
 			public void start(Creature creature){
+				boolean healsWound = false;
 				for(Wound w : creature.wounds()){
 					if(w.type() == DamageType.PIERCING){
 						w.onFinish(creature);
 						w.endDuration();
+						healsWound = true;
 						return;
 					}
 				}
+				if(healsWound)
+					creature.doAction("siente mas sano");
 			}
 		});
-		world.addAtEmptyLocation(bonePowder, depth);
+		//world.addAtEmptyLocation(bonePowder, depth);
 		return bonePowder;
 	}
 
-	public Item newBowlsPomada(int depth){
-		Item bonePowder = new Item(ItemType.STATIC, '~', 'F', AsciiPanel.red, "pomada de viceras", null);
+	public static Item newBowlsPomada(int depth){
+		Item bonePowder = new Item(ItemType.WOUND_HEAL, '~', 'F', AsciiPanel.red, "ungüento de viceras", null);
 		bonePowder.setData("IsEdible", true);
 		bonePowder.setQuaffEffect(new Effect(1){
 			public void start(Creature creature){
+				boolean healsWound = false;
 				for(Wound w : creature.wounds()){
 					if(w.type() == DamageType.BLUNT){
 						w.onFinish(creature);
 						w.endDuration();
+						healsWound = true;
 						return;
 					}
 				}
+				if(healsWound)
+					creature.doAction("siente mas sano");
 			}
 		});
-		world.addAtEmptyLocation(bonePowder, depth);
+		//world.addAtEmptyLocation(bonePowder, depth);
 		return bonePowder;
 	}
 	
@@ -425,30 +449,30 @@ public class StuffFactory {
 	
 	public Item newWhiteMagesSpellbook(int depth) {
 		Item item = new Item(ItemType.STATIC, '+', 'M',AsciiPanel.brightWhite, "libro blanco", null);
-		item.addWrittenSpell("ligera curacion", 4, new Effect(1){
+		item.addWrittenSpell("ligera curacion", new Effect(1){
 			public void start(Creature creature){
 					
 				creature.modifyHp(20, "Killed by a minor heal spell?");
 				creature.doAction("ve mas sano");
 			}
-		});
+		}, true);
 		
-		item.addWrittenSpell("curacion mayor", 8, new Effect(1){
+		item.addWrittenSpell("curacion mayor", new Effect(1){
 			public void start(Creature creature){
 				
 				creature.modifyHp(50, "Killed by a major heal spell?");
 				creature.doAction("ve mucho mas sano");
 			}
-		});
+		}, true);
 		
-		item.addWrittenSpell("curacion lenta", 12, new Effect(50){
+		item.addWrittenSpell("curacion lenta", new Effect(50){
 			public void update(Creature creature){
 				super.update(creature);
 				creature.modifyHp(2, "Killed by a slow heal spell?");
 			}
-		});
+		}, true);
 
-		item.addWrittenSpell("fuerza", 16, new Effect(50){
+		item.addWrittenSpell("fuerza", new Effect(50){
 			public void start(Creature creature){
 				creature.modifyVisionRadius(1);
 				creature.doAction("parece brillar con omnipotencia!");
@@ -461,7 +485,7 @@ public class StuffFactory {
 			public void end(Creature creature){
 				creature.modifyVisionRadius(-1);
 			}
-		});
+		}, true);
 		
 		world.addAtEmptyLocation(item, depth);
 		return item;
@@ -470,13 +494,17 @@ public class StuffFactory {
 	public Item newBlueMagesSpellbook(int depth) {
 		Item item = new Item(ItemType.STATIC, '+', 'M', AsciiPanel.brightBlue, "libro azul", null);
 
-		item.addWrittenSpell("sangre por mana", 1, new Effect(1){
+		item.addWrittenSpell("sangre por mana", new Effect(8){
 			public void start(Creature creature){
-				creature.modifyHp(-10, "Killed by a blood to mana spell.");
+				creature.modifyHp(-2, "Killed by a blood to mana spell.");
+				creature.doAction("JOJO");
 			}
-		});
+			public void update(Creature creature){
+				System.out.println("!!");
+			}
+		}, false);
 		
-		item.addWrittenSpell("blink", 6, new Effect(1){
+		item.addWrittenSpell("blink", new Effect(1){
 			public void start(Creature creature){
 				creature.doAction("desaparece");
 				
@@ -495,44 +523,21 @@ public class StuffFactory {
 				
 				creature.doAction("reaparece");
 			}
-		});
+		}, false);
 		
-		item.addWrittenSpell("invocar murcielagos", 11, new Effect(1){
-			public void start(Creature creature){
-				for (int ox = -1; ox < 2; ox++){
-					for (int oy = -1; oy < 2; oy++){
-						int nx = creature.x + ox;
-						int ny = creature.y + oy;
-						if (ox == 0 && oy == 0 
-								|| creature.creature(nx, ny, creature.z) != null)
-							continue;
-						
-						/*Creature bat = null;
-						
-						if (!bat.canEnter(nx, ny, creature.z)){
-							world.remove(bat);
-							continue;
-						}
-						
-						bat.x = nx;
-						bat.y = ny;
-						bat.z = creature.z;
-						
-						creature.summon(bat);*/
-					}
-				}
-			}
-		});
-		
-		item.addWrittenSpell("detectar criaturas", 16, new Effect(75){
+		item.addWrittenSpell("detectar criaturas", new Effect(75){
 			public void start(Creature creature){
 				creature.doAction("mira lejos en el horizonte");
 				creature.modifyDetectCreatures(1);
 			}
+			public void update(Creature creature){
+				System.out.println("THIS IS NOT");
+			}
 			public void end(Creature creature){
 				creature.modifyDetectCreatures(-1);
 			}
-		});
+		}, false);
+		
 		world.addAtEmptyLocation(item, depth);
 		return item;
 	}

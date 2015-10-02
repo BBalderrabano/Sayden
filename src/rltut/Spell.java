@@ -1,21 +1,22 @@
 package rltut;
 
 public class Spell {
-
 	private String name;
 	public String name() { return name; }
 
-	private int manaCost;
-	public int manaCost() { return manaCost; }
-
 	private Effect effect;
-	public Effect effect() { return new Effect(effect); }
+	public Effect effect() { return effect; }
 
-	public boolean requiresTarget() { return true; }
+	private boolean requiresTarget = true;
+	public boolean requiresTarget() { return requiresTarget; }
 	
-	public Spell(String name, int manaCost, Effect effect){
+	public Spell(String name, Effect effect){
 		this.name = name;
-		this.manaCost = manaCost;
 		this.effect = effect;
+	}
+	public Spell(String name, Effect effect, boolean requiresTarget){
+		this.name = name;
+		this.effect = effect;
+		this.requiresTarget = requiresTarget;
 	}
 }

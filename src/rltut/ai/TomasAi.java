@@ -2,11 +2,9 @@ package rltut.ai;
 
 import java.util.ArrayList;
 
-import asciiPanel.AsciiPanel;
+import rltut.Constants;
 import rltut.Creature;
-import rltut.DamageType;
 import rltut.Item;
-import rltut.Item.ItemType;
 import rltut.screens.Option;
 
 public class TomasAi extends CreatureAi {
@@ -18,7 +16,7 @@ public class TomasAi extends CreatureAi {
 		messages = new ArrayList<String>();
 	}
 	public void onTalkTo(Creature talker){
-		if(talker.getBooleanData("IsSilenced")){
+		if(talker.getBooleanData(Constants.IS_SILENCED)){
 			talker.notify(creature.color(), "...");
 			return;
 		}
@@ -77,41 +75,38 @@ public class TomasAi extends CreatureAi {
 			if(creature.getBooleanData("IsWarrior") && !creature.getBooleanData("IsArmed")){
 				talker.addOption(new Option("Espada (cortante)", creature){
 					public void onSelect(Creature player){
-						Item item = new Item(ItemType.WEAPON, ')', 'F', AsciiPanel.brightWhite, "espada", null);
-						item.addDamageType(DamageType.SLICE, 2);
-						item.modifyAttackSpeed(50);
+						Item item = Constants.SLICE_STARTING_WEAPON();
 						player.clearOptions();
 						player.inventory().add(item);
 						creature.setData("IsArmed",true);
+						player.setData(Constants.TOMAS_WEAPON, true);
 						creature.ai().onTalkTo(player);
 					}
 				});
 				talker.addOption(new Option("Maza (contundente)", creature){
 					public void onSelect(Creature player){
-						Item item = new Item(ItemType.WEAPON, ')', 'F', AsciiPanel.brightWhite, "maza", null);
-						item.addDamageType(DamageType.BLUNT, 2);
-						item.modifyAttackSpeed(50);
+						Item item = Constants.BLUNT_STARTING_WEAPON();
 						player.clearOptions();
 						player.inventory().add(item);
 						creature.setData("IsArmed",true);
+						player.setData(Constants.TOMAS_WEAPON, true);
 						creature.ai().onTalkTo(player);
 					}
 				});
 				talker.addOption(new Option("Daga (penetrante)", creature){
 					public void onSelect(Creature player){
-						Item item = new Item(ItemType.WEAPON, ')', 'F', AsciiPanel.brightWhite, "daga", null);
-						item.addDamageType(DamageType.PIERCING, 2);
-						
+						Item item = Constants.PIERCING_STARTING_WEAPON();
 						player.clearOptions();
 						player.inventory().add(item);
 						creature.setData("IsArmed",true);
+						player.setData(Constants.TOMAS_WEAPON, true);
 						creature.ai().onTalkTo(player);
 					}
 				});
 				talker.addOption(new Option("Rechazar el camino", creature){
 					public void onSelect(Creature player){
 						player.clearOptions();
-						player.notify(creature.color(), "Bien...en una de esas eres realmente un guerrero...");
+						player.notify(creature.color(), "Bien...quien dice...quizas seas realmente un guerrero...");
 						creature.setData("IsArmed",true);
 						creature.ai().onTalkTo(player);
 					}

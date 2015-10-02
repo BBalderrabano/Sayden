@@ -71,11 +71,11 @@ public class Wound extends DataStructure{
 							creature.notifyArround(Constants.WOUND_COLOR, "Crack!! Al golpear con "+ type.itemOrigin().nameElLaTu(applier)+ " " +
 										(applier.isPlayer() ? "destrozas la mandibula " + creature.nameDelDeLa() : applier.nameElLa() + " destroza tu mandibula"));
 							creature.notify(Constants.WOUND_COLOR, "[-2 vitalidad maxima y no puedes pronunciar palabras]");
-							creature.setData("IsSilenced", true);
+							creature.setData(Constants.IS_SILENCED, true);
 							creature.modifyMaxHp(-2);
 						}
 						public void onFinish(Creature creature){
-							creature.unsetData("IsSilenced");
+							creature.unsetData(Constants.IS_SILENCED);
 							creature.modifyMaxHp(2);
 						}
 					});

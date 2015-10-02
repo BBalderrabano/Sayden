@@ -103,6 +103,9 @@ public class Creature extends DataStructure{
 	public Item shield() { return shield; }
 	public void setShield(Item shield) { this.shield = shield; }
 	
+	private List<Spell> learnedSpells;
+	public List<Spell> learnedSpells() { return learnedSpells; }
+	
 	private List<Effect> effects;
 	public List<Effect> effects(){ return effects; }
 	
@@ -185,6 +188,13 @@ public class Creature extends DataStructure{
 	public void clearOptions() { options.clear(); }
 	public void getOptions(){
 		List<Point> adjacent = new Point(x,y,z).neighbors8();
+		adjacent.add(new Point(x,y,z));
+		
+		addOption(new Option("NADA", this){
+			public void onSelect(Creature creature){
+				creature.clearOptions();
+			}
+		});
 		
 		for(int n = 0; n < adjacent.size(); n++){
 			final Point p = adjacent.get(n);
@@ -205,7 +215,7 @@ public class Creature extends DataStructure{
 					}
 				});
 			}
-			if(c != null){
+			if(c != null && c != this){
 				addOption(new Option("atacar "+ c.nameAElALa(), this){
 					public void onSelect(Creature creature){
 						creature.moveBy(p.x - x,p.y - y, z);
@@ -221,6 +231,17 @@ public class Creature extends DataStructure{
 						creature.clearOptions();
 					}
 				});
+				if(i.itemType() == Item.ItemType.CORPSE){
+					addOption(new Option("desollar "+ i.nameAElALa(), this){
+						public void onSelect(Creature creature){
+							Item resource = StuffFactory.getHealCorpse();
+							creature.inventory().add(resource);
+							creature.doAction("desolla " + i.nameAElALa() + " obteniendo " + resource.nameUnUna() + "");
+							creature.getWorld().remove(i);
+							creature.clearOptions();
+						}
+					});
+				}
 			}
 		}
 	}
@@ -278,6 +299,7 @@ public class Creature extends DataStructure{
 		this.limbs = new ArrayList<BodyPart>();
 		this.wounds = new ArrayList<Wound>();
 		this.options = new ArrayList<Option>();
+		this.learnedSpells = new ArrayList<Spell>();
 		this.gender = gender;
 		this.intrinsicWeapon = weapon;
 		this.intrinsicArmor = armor;
@@ -627,7 +649,7 @@ public class Creature extends DataStructure{
 	}
 	
 	private void leaveCorpse(){
-		Item corpse = new Item(ItemType.STATIC, '%', 'M', originalColor(), "cadaver de " + name(), null);
+		Item corpse = new Item(ItemType.CORPSE, '%', 'M', originalColor(), "cadaver de " + name(), null);
 		world.addAtEmptySpace(corpse, x, y, z);
 		for (Item item : inventory.getItems()){
 			if (item != null){
@@ -879,12 +901,11 @@ public class Creature extends DataStructure{
 	}
 	
 	public void eat(Item item){
-		doAction("consume " + StringUtils.checkGender(item.gender(), true, this.isPlayer()) + " " + nameOf(item));
-		consume(item);
-	}
-	
-	public void quaff(Item item){
-		doAction("bebe " + StringUtils.checkGender(item.gender(), true, this.isPlayer()) + " " + nameOf(item));
+		if(item.itemType() == Item.ItemType.WOUND_HEAL){
+			doAction("aplica " + StringUtils.checkGender(item.gender(), true, this.isPlayer()) + " " + nameOf(item));
+		}else{
+			doAction("consume " + StringUtils.checkGender(item.gender(), true, this.isPlayer()) + " " + nameOf(item));
+		}
 		consume(item);
 	}
 	
@@ -897,12 +918,18 @@ public class Creature extends DataStructure{
 		getRidOf(item);
 	}
 	
-	public void addEffect(Effect effect){
-		if (effect == null)
+	public void learnSpell(Spell spell){
+		if (spell == null)
 			return;
 		
-		effect.start(this);
-		effects.add(effect);
+		learnedSpells.add(spell);
+	}
+	
+	public void addEffect(Effect newEffect){
+		if (newEffect == null)
+			return;
+		newEffect.start(this);
+		effects.add(newEffect);
 	}
 	
 	private void getRidOf(Item item){
@@ -1030,8 +1057,10 @@ public class Creature extends DataStructure{
 	public void castSpell(Spell spell, int x2, int y2) {
 		Creature other = creature(x2, y2, z);
 
-		doAction("apunta y murmulla a la nada");
+		if(other == null)
+			return;
 		
+		//doAction("apunta y murmulla a la nada");
 		other.addEffect(spell.effect());
 	}
 	

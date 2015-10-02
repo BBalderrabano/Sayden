@@ -12,7 +12,9 @@ public class Item extends DataStructure{
 		HELMENT,
 		STATIC,
 		INTRINSIC,
-		UNEQUIPPABLE
+		UNEQUIPPABLE,
+		CORPSE,
+		WOUND_HEAL
 	}
 	
 	private ItemType itemType;
@@ -76,8 +78,8 @@ public class Item extends DataStructure{
 	public int movementSpeedModifier() { return movementSpeedModifier; }
 	public void modifyMovementSpeed(int amount) { this.movementSpeedModifier += amount; }
 	
-	public void addWrittenSpell(String name, int manaCost, Effect effect){
-		writtenSpells.add(new Spell(name, manaCost, effect));
+	public void addWrittenSpell(String name, Effect effect, boolean requirestarget){
+		writtenSpells.add(new Spell(name, effect, requirestarget));
 	}
 	
 	/**Constructor para los items intrinsecos (arma / armadura de la criatura, pelaje, puños, etc)*/
@@ -86,6 +88,7 @@ public class Item extends DataStructure{
 		this.itemType = type;
 		this.gender = gender;
 		this.name = name;
+		this.writtenSpells = new ArrayList<Spell>();
 		this.damageTypes = new ArrayList<DamageType>();
 		this.playerBonusDamage = 0;
 	}
